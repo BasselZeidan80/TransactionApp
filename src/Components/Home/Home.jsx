@@ -174,9 +174,10 @@ export default function Home() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredTransactions.map((transaction) => (
                   <tr
+                  onClick={() => handleCustomerSelect(transaction.customer_id)}
                     style={{ cursor: "pointer" }}
                     key={transaction.id}
-                    className="hover:bg-green-50 transition duration-300 ease-in-out transform hover:scale-105"
+                    className="hover:bg-green-50 transition duration-300 ease-in-out transform hover:scale-x-100"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
