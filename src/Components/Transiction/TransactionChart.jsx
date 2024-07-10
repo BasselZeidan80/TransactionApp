@@ -1,84 +1,63 @@
-import React, { useEffect, useRef } from "react";
-import Chart from "chart.js/auto";
+import React from "react";
+import { Line, Bar } from "react-chartjs-2";
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from "chart.js";
+import axios from "axios";
+import { useQuery } from "react-query";
 
-export default function Transiction({
-  filteredTransactions,
-  selectedCustomerId,
-}) {
-  const chartRef = useRef(null);
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
-  const aggregateTransactionsByDay = () => {
-    const aggregatedData = {};
-
-    filteredTransactions.forEach((transaction) => {
-      if (
-        selectedCustomerId === null ||
-        transaction.customer_id == selectedCustomerId
-      ) {
-        const date = transaction.date.split("T")[0];
-        if (!aggregatedData[date]) {
-          aggregatedData[date] = 0;
-        }
-        aggregatedData[date] += parseFloat(transaction.amount);
-      }
-    });
-
-    return aggregatedData;
+export default function TransactionChart({ filteredTransactions, selectedCustomerId, chartType }) {
+  const getCustomers = async () => {
+    const response = await axios.get(`http://localhost:3002/customers`);
+    return response.data;
   };
 
-  const prepareChartData = () => {
-    const aggregatedData = aggregateTransactionsByDay();
-    const labels = Object.keys(aggregatedData);
-    const data = Object.values(aggregatedData);
-    return { labels, data };
+  const { data: customers, isLoading: isLoadingCustomers } = useQuery("customers", getCustomers);
+
+  // const getCustomerName = (customerId) => {
+  //   const customer = customers.find((c) => c.id == customerId);
+  //   return customer ? customer.name : "Unknown";
+  // };
+
+  const customerTransactions = filteredTransactions.filter(transaction => transaction.customer_id == selectedCustomerId);
+
+  const chartData = {
+    labels: customerTransactions.map(transaction => transaction.date),
+    datasets: [
+      {
+        label: "Transaction Amount",
+        data: customerTransactions.map(transaction => transaction.amount),
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
   };
 
-  useEffect(() => {
-    const { labels, data } = prepareChartData();
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Transaction Chart',
+      },
+    },
+  };
 
-    if (chartRef.current) {
-      if (chartRef.current.chartInstance) {
-        chartRef.current.chartInstance.destroy();
-      }
-
-      const ctx = chartRef.current.getContext("2d");
-      chartRef.current.chartInstance = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Total Amount",
-              data,
-              fill: false,
-              borderColor: "#4fa94d",
-              tension: 0.1,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: "Date",
-              },
-            },
-            y: {
-              title: {
-                display: true,
-                text: "Total Amount",
-              },
-            },
-          },
-        },
-      });
-    }
-  }, [filteredTransactions, selectedCustomerId]);
+  if (isLoadingCustomers) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="w-full rounded-lg shadow-lg overflow-hidden">
-      <canvas ref={chartRef} width="400" height="200"></canvas>
+    <div>
+      {chartType === "line" ? (
+        <Line data={chartData} options={chartOptions} />
+      ) : (
+        <Bar data={chartData} options={chartOptions} />
+      )}
     </div>
   );
 }
