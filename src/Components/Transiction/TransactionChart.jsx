@@ -7,11 +7,16 @@ import { useQuery } from "react-query";
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 export default function TransactionChart({ filteredTransactions, selectedCustomerId, chartType }) {
+
+
+  const jsonDbUrl = "https://basselzeidan80.github.io/Customers-Transaction-server/db.json";
+
   const getCustomers = async () => {
-    const response = await axios.get(`http://localhost:3002/customers`);
-    return response.data;
+    const response = await axios.get(`${jsonDbUrl}`);
+    return response.data.customers;
   };
 
+  
   const { data: customers, isLoading: isLoadingCustomers } = useQuery("customers", getCustomers);
 
   // const getCustomerName = (customerId) => {

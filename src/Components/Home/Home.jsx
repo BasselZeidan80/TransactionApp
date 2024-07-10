@@ -10,12 +10,18 @@ export default function Home() {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [chartType, setChartType] = useState("line");  
 
-  function getCustomers() {
-    return axios.get(`http://localhost:3002/customers`);
+
+const jsonDbUrl = "https://basselzeidan80.github.io/Customers-Transaction-server/db.json";
+
+
+  async function getCustomers() {
+    const res = await axios.get(`${jsonDbUrl}`);
+    return res.data.customers
   }
 
-  function getTransactions() {
-    return axios.get(`http://localhost:3002/transactions`);
+  async function getTransactions() {
+    const res = await axios.get(`${jsonDbUrl}`);
+    return res.data.transactions
   }
 
   const {
@@ -60,8 +66,8 @@ export default function Home() {
     );
   }
 
-  const customers = customersData.data;
-  const transactions = transactionsData.data;
+  const customers = customersData;
+  const transactions = transactionsData;
 
   const getCustomerName = (customerId) => {
     const customer = customers.find((c) => c.id == customerId);
